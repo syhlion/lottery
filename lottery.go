@@ -31,6 +31,15 @@ type Lottery struct {
 	rand *rand.Rand
 }
 
+func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
+	dest = make([]Item, len(items))
+	perm := l.rand.Perm(len(items))
+	for i, v := range perm {
+		dest[v] = items[i]
+	}
+	return
+}
+
 func (l *Lottery) Rand(items ...Item) int {
 	l.rand.Seed(time.Now().UnixNano())
 	total := 0
