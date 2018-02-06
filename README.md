@@ -25,7 +25,7 @@ func main(){
         Item{Name:"f",Prob:5},
     }
 
-    //mulite rand
+    //mulit rand
     idx:=lottery.Rand(items ...)
     switch i:= items[idx].(type){
         case Item:
