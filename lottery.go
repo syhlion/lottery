@@ -8,7 +8,7 @@ import (
 
 func New() *Lottery {
 	return &Lottery{
-		rand: rand.New(rand.NewSource(time.Now().UnixNano)),
+		rand: rand.New(rand.NewSource(time.Now().UnixNano())),
 	}
 }
 
