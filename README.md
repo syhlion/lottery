@@ -15,7 +15,7 @@ func (i Item) Prob() int{
     return i.Prob
 }
 func main(){
-    lottery := New()
+    lott := New()
     items :=[]lottery.Item{
         Item{Name:"a",Prob:5},
         Item{Name:"b",Prob:20},
@@ -24,11 +24,16 @@ func main(){
         Item{Name:"e",Prob:50},
         Item{Name:"f",Prob:5},
     }
-    idx:=lottery.Rand(items)
+
+    //mulite rand
+    idx:=lottery.Rand(items ...)
     switch i:= items[idx].(type){
         case Item:
          fmt.Println(i.Name)
     }
+
+    //shuffle rand
+    shuffleItems := lott.Shuffle(items ...)
 
 }
 
