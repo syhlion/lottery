@@ -3,12 +3,14 @@ package lottery
 import (
 	"math/rand"
 	"sort"
+	"sync"
 	"time"
 )
 
 func New() *Lottery {
 	return &Lottery{
 		rand: rand.New(rand.NewSource(time.Now().UnixNano())),
+		lock: &sync.RWMutex{},
 	}
 }
 
@@ -29,9 +31,13 @@ func (is ItemSort) Swap(i, j int) {
 
 type Lottery struct {
 	rand *rand.Rand
+	lock *sync.RWMutex
 }
 
 func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
+	l.lock.Lock()
+	l.rand.Seed(time.Now().UnixNano())
+	l.lock.Unlock()
 	dest = make([]Item, len(items))
 	perm := l.rand.Perm(len(items))
 	for i, v := range perm {
@@ -40,8 +46,10 @@ func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
 	return
 }
 
-func (l *Lottery) Rand(items ...Item) int {
+func (l *Lottery) Pick(items ...Item) int {
+	l.lock.Lock()
 	l.rand.Seed(time.Now().UnixNano())
+	l.lock.Unlock()
 	total := 0
 	for _, item := range items {
 		total += item.Prob()

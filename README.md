@@ -26,7 +26,7 @@ func main(){
     }
 
     //mulit rand
-    idx:=lottery.Rand(items ...)
+    idx:=lottery.Pick(items ...)
     switch i:= items[idx].(type){
         case Item:
          fmt.Println(i.Name)
