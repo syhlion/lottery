@@ -4,6 +4,7 @@
 
 `go get -u github.com/syhlion/lottery`
 
+
 ## Usaged
 
 ``` go
