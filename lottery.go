@@ -5,11 +5,28 @@ import (
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/bwmarrin/snowflake"
 )
+
+var seed int64 = 1
+var node *snowflake.Node
+
+func init() {
+	rr := rand.New(rand.NewSource(time.Now().UnixNano()))
+	tmp := rr.Intn(1022)
+	seed = seed + int64(tmp)
+	var err error
+	node, err = snowflake.NewNode(seed)
+	if err != nil {
+		panic(err)
+	}
+
+}
 
 func New() *Lottery {
 	return &Lottery{
-		rand: rand.New(rand.NewSource(time.Now().UnixNano())),
+		rand: rand.New(rand.NewSource(node.Generate().Int64())),
 		lock: &sync.RWMutex{},
 	}
 }
@@ -36,7 +53,7 @@ type Lottery struct {
 
 func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
 	l.lock.Lock()
-	l.rand.Seed(time.Now().UnixNano())
+	l.rand.Seed(node.Generate().Int64())
 	l.lock.Unlock()
 	dest = make([]Item, len(items))
 	perm := l.rand.Perm(len(items))
@@ -48,7 +65,7 @@ func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
 
 func (l *Lottery) Pick(items ...Item) int {
 	l.lock.Lock()
-	l.rand.Seed(time.Now().UnixNano())
+	l.rand.Seed(node.Generate().Int64())
 	l.lock.Unlock()
 	total := 0
 	for _, item := range items {
