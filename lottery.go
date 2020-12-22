@@ -1,33 +1,34 @@
 package lottery
 
 import (
-	"math/rand"
+	crand "crypto/rand"
+	"encoding/binary"
+	"log"
+	rand "math/rand"
 	"sort"
-	"sync"
-	"time"
-
-	"github.com/bwmarrin/snowflake"
 )
 
-var seed int64 = 1
-var node *snowflake.Node
+var src cryptoSource
 
-func init() {
-	rr := rand.New(rand.NewSource(time.Now().UnixNano()))
-	tmp := rr.Intn(1022)
-	seed = seed + int64(tmp)
-	var err error
-	node, err = snowflake.NewNode(seed)
+type cryptoSource struct{}
+
+func (s cryptoSource) Seed(seed int64) {}
+
+func (s cryptoSource) Int63() int64 {
+	return int64(s.Uint64() & ^uint64(1<<63))
+}
+
+func (s cryptoSource) Uint64() (v uint64) {
+	err := binary.Read(crand.Reader, binary.BigEndian, &v)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
+	return v
 }
 
 func New() *Lottery {
 	return &Lottery{
-		rand: rand.New(rand.NewSource(node.Generate().Int64())),
-		lock: &sync.RWMutex{},
+		rand: rand.New(src),
 	}
 }
 
@@ -48,13 +49,9 @@ func (is ItemSort) Swap(i, j int) {
 
 type Lottery struct {
 	rand *rand.Rand
-	lock *sync.RWMutex
 }
 
 func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
-	l.lock.Lock()
-	l.rand.Seed(node.Generate().Int64())
-	l.lock.Unlock()
 	dest = make([]Item, len(items))
 	perm := l.rand.Perm(len(items))
 	for i, v := range perm {
@@ -64,9 +61,6 @@ func (l *Lottery) Shuffle(items ...Item) (dest []Item) {
 }
 
 func (l *Lottery) Pick(items ...Item) int {
-	l.lock.Lock()
-	l.rand.Seed(node.Generate().Int64())
-	l.lock.Unlock()
 	total := 0
 	for _, item := range items {
 		total += item.Prob()
